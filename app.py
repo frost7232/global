@@ -1,45 +1,39 @@
 import streamlit as st
 import requests
-from googletrans import Translator
+from openai import OpenAI
 
-# 1. Setup
-API_KEY = "a6ccf081b60046d697f78d9b80333c0a"  
-translator = Translator()
+# 1. Setup (Use your OpenAI Key here)
+client = OpenAI(api_key="a6ccf081b60046d697f78d9b80333c0a")
+NEWS_API_KEY = "YOUR_NEWS_API_KEY"
 
 st.title("🌐 Global Lens News Bridge")
-st.write("See how the world describes the same topic.")
 
-# 2. User Input
-query = st.text_input("Enter a topic (e.g., 'Climate Change', 'AI', 'Soccer'):")
+query = st.text_input("Enter a topic:", "Climate Change")
 
-# Define which countries/languages you want to 'bridge'
 countries = {
-    "United States": {"code": "us", "lang": "en"},
-    "Argentina": {"code": "ar", "lang": "es"},
-    "France": {"code": "fr", "lang": "fr"},
-    "India": {"code": "in", "lang": "hi"}
+    "Argentina": "ar",
+    "France": "fr",
+    "India": "in",
+    "Japan": "jp"
 }
 
 if query:
     cols = st.columns(len(countries))
-    
-    for i, (name, info) in enumerate(countries.items()):
+    for i, (name, code) in enumerate(countries.items()):
         with cols[i]:
             st.header(name)
+            url = f"https://newsapi.org/v2/top-headlines?q={query}&country={code}&apiKey={NEWS_API_KEY}"
+            data = requests.get(url).json()
             
-            # Fetch News from that specific country
-            url = f"https://newsapi.org/v2/top-headlines?q={query}&country={info['code']}&apiKey={API_KEY}"
-            response = requests.get(url).json()
-            articles = response.get("articles", [])
-
-            if articles:
-                for art in articles[:3]: # Just the top 3
-                    title = art['title']
-                    # Translate to English (or your prompt language)
-                    translated = translator.translate(title, dest='en').text
-                    
-                    st.markdown(f"**Original:** {title}")
-                    st.success(f"**Translated:** {translated}")
-                    st.write("---")
-            else:
-                st.write("No local news found for this topic.")
+            for article in data.get("articles", [])[:2]:
+                title = article['title']
+                
+                # Use AI to translate and explain the cultural context
+                translation = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "user", "content": f"Translate this headline to English and tell me in 1 sentence why this perspective might be different from Western news: {title}"}]
+                )
+                
+                st.write(f"**Original:** {title}")
+                st.info(translation.choices[0].message.content)
+                st.write("---")
