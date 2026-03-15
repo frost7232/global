@@ -4,7 +4,7 @@ from deep_translator import GoogleTranslator
 
 # 1. Setup
 # Get your FREE key at newsapi.org (No credit card needed)
-NEWS_API_KEY = "YOUR_NEWS_API_KEY_HERE" 
+NEWS_API_KEY = "a6ccf081b60046d697f78d9b80333c0a" 
 
 st.set_page_config(page_title="Global Lens", layout="wide")
 st.title("🌐 Global Lens News Bridge")
