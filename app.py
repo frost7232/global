@@ -1,54 +1,55 @@
 import streamlit as st
 import requests
-from googletrans import Translator
+from deep_translator import GoogleTranslator
 
 # 1. Setup
-NEWS_API_KEY = "a6ccf081b60046d697f78d9b80333c0a" # Get this free at newsapi.org
-translator = Translator()
+# Get your FREE key at newsapi.org (No credit card needed)
+NEWS_API_KEY = "YOUR_NEWS_API_KEY_HERE" 
 
-st.set_page_config(page_title="Global News Bridge", layout="wide")
+st.set_page_config(page_title="Global Lens", layout="wide")
 st.title("🌐 Global Lens News Bridge")
-st.markdown("### Seeing the world beyond the Western data bubble.")
+st.markdown("### Breaking the Western Data Bubble with Real-Time Translation")
 
-query = st.text_input("Enter a topic (e.g., 'Economy', 'Protest', 'Technology'):")
+# 2. User Input
+query = st.text_input("Enter a global topic (e.g., 'Economy', 'Energy', 'Protest'):", "Technology")
 
-# We use countries that usually have very different perspectives
+# Choose countries that usually have very different cultural views
 countries = {
-    "Argentina 🇦🇷": "ar",
     "India 🇮🇳": "in",
+    "Argentina 🇦🇷": "ar",
     "France 🇫🇷": "fr",
     "Japan 🇯🇵": "jp"
 }
 
 if query:
-    st.write(f"🔍 Fetching global perspectives for **{query}**...")
+    st.write(f"🔍 Fetching local news about **{query}** and translating to English...")
     cols = st.columns(len(countries))
     
     for i, (name, code) in enumerate(countries.items()):
         with cols[i]:
             st.subheader(name)
-            # Fetch News
+            
+            # Fetch News from that specific country
             url = f"https://newsapi.org/v2/top-headlines?q={query}&country={code}&apiKey={NEWS_API_KEY}"
             try:
                 response = requests.get(url).json()
                 articles = response.get("articles", [])
 
                 if articles:
-                    for art in articles[:3]:
+                    for art in articles[:3]: # Show top 3
                         title = art['title']
-                        # FREE Translation
-                        try:
-                            translated = translator.translate(title, dest='en').text
-                            st.write(f"🔗 **{translated}**")
+                        
+                        # FREE Translation using Google backend
+                        translated_title = GoogleTranslator(source='auto', target='en').translate(title)
+                        
+                        st.write(f"🔗 **{translated_title}**")
+                        if title != translated_title:
                             st.caption(f"Original: {title}")
-                        except:
-                            st.write(f"🔗 {title}") # Fallback if translation fails
                         st.divider()
                 else:
-                    st.info("No local news found.")
-            except:
-                st.error("API Error")
+                    st.info("No local headlines found for this topic.")
+            except Exception as e:
+                st.error("Connection error. Check your NewsAPI key.")
 
-# If nothing is typed yet
 else:
-    st.info("Type a topic above and press Enter to see how different countries are reporting it!")
+    st.info("Type a topic above to see how the world is reporting it.")
